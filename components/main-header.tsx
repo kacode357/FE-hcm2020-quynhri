@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
 import SiteLogo from "@/components/site-logo";
 import ThemeToggle from "@/components/theme-toggle";
 import MobileMenu from "@/components/mobile-menu";
@@ -60,9 +59,6 @@ export default function MainHeader() {
 
         {/* Right: Actions */}
         <div className={cls.right}>
-          <Button className={cls.cta} asChild>
-            <Link href="/timeline">Bắt đầu</Link>
-          </Button>
           <ThemeToggle />
         </div>
       </div>
