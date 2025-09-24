@@ -53,7 +53,7 @@ function fc(features: any[]) {
   return { type: "FeatureCollection", features } as const;
 }
 
-// Thêm keyframes và CSS để ẩn logo Mapbox và tạo hiệu ứng nhấp nháy cho button
+// CSS custom
 const customStyles = `
   .mapboxgl-ctrl-bottom-left {
     display: none !important;
@@ -88,7 +88,7 @@ export default function MapView() {
     [stagePlaceIds]
   );
 
-  // route (dedupe cộng dồn + current)
+  // route (dedupe + current)
   const edgesUpto = useMemo(() => {
     const seen = new Set<string>();
     const unique: [string, string][] = [];
@@ -124,7 +124,7 @@ export default function MapView() {
     return fc(feats);
   }, [stage.edges]);
 
-  /* ---------- Modal events (lọc theo stage) ---------- */
+  /* ---------- Modal events ---------- */
   const activePlace = useMemo(
     () => PLACES.find((p) => p.id === activeId) ?? null,
     [activeId]
@@ -235,6 +235,7 @@ export default function MapView() {
     <>
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
       <div className="relative min-h-[78vh] rounded-md overflow-hidden border">
+        {/* Map */}
         <Map
           ref={mapRef}
           initialViewState={{ longitude: 105.8, latitude: 15.9, zoom: 3.8 }}
@@ -243,7 +244,7 @@ export default function MapView() {
           attributionControl={false}
           style={{ width: "100%", height: "72vh" }}
         >
-          {/* tuyến đã đi (mờ) */}
+          {/* Tuyến đã đi */}
           <Source id="route-all" type="geojson" data={routeAll}>
             <Layer
               id="route-all-line"
@@ -258,7 +259,7 @@ export default function MapView() {
             />
           </Source>
 
-          {/* tuyến giai đoạn hiện tại (đậm + glow) */}
+          {/* Tuyến hiện tại */}
           <Source id="route-active" type="geojson" data={routeActive}>
             <Layer
               id="route-active-line"
@@ -273,7 +274,7 @@ export default function MapView() {
             />
           </Source>
 
-          {/* markers (active có ping) */}
+          {/* Markers */}
           {visiblePlaces.map((p) => (
             <Marker
               key={p.id}
@@ -286,9 +287,6 @@ export default function MapView() {
                 onClick={() => focusById(p.id, true)}
                 title={p.title}
               >
-                {activeId === p.id && (
-                  <span className="absolute -inset-2 rounded-full bg-red-500/30 animate-ping" />
-                )}
                 <div
                   className={`relative w-8 h-8 rounded-full border-2 shadow transition-transform hover:scale-125 ${
                     activeId === p.id
@@ -301,15 +299,11 @@ export default function MapView() {
             </Marker>
           ))}
 
-          {/* Attribution compact – đưa lên top-right, dùng style thay vì className */}
-          <AttributionControl
-            compact
-            position="top-right"
-            style={{ opacity: 0.7 }}
-          />
+          {/* Attribution */}
+          <AttributionControl compact position="top-right" style={{ opacity: 0.7 }} />
         </Map>
 
-        {/* Progress dots (top-center) */}
+        {/* Progress dots */}
         <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-3 flex items-center gap-2 bg-background/85 backdrop-blur border rounded-full px-3 py-1 shadow-sm">
           {STAGES.map((s, i) => (
             <button
@@ -326,16 +320,9 @@ export default function MapView() {
           ))}
         </div>
 
-        {/* Stage Title (top-left) – tô đỏ nổi bật */}
-        <div className="absolute top-3 left-3 bg-background/95 backdrop-blur border border-red-200 rounded-xl px-4 py-3 shadow-md">
-          <div className="text-base font-semibold text-red-600">
-            {stage.title}
-          </div>
-          <div className="h-0.5 bg-red-500/50 rounded my-1" />
-          <div className="text-xs text-red-500">{stage.years}</div>
-        </div>
+       
 
-        {/* Dock điều hướng + chips (bottom) */}
+        {/* Dock bottom */}
         <div className="absolute inset-x-3 bottom-3">
           <div className="bg-background/95 backdrop-blur border rounded-xl p-3 shadow-lg">
             <div className="flex items-center justify-between gap-2">
@@ -359,9 +346,6 @@ export default function MapView() {
                 >
                   Sau →
                 </Button>
-                <Button size="sm" variant="ghost" onClick={fitToStage}>
-                  Fit giai đoạn
-                </Button>
               </div>
               <div className="text-xs text-foreground/60 hidden md:block">
                 Gợi ý: dùng phím ← → để chuyển giai đoạn
@@ -373,16 +357,18 @@ export default function MapView() {
                 <div className="flex gap-2 pr-2">
                   {visiblePlaces.map((p) => (
                     <Button
-                      key={p.id}
-                      size="sm"
-                      variant={activeId === p.id ? "default" : "outline"}
-                      onClick={() => focusById(p.id, true)}
-                      className={`rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                        activeId === null ? "animate-pulse-glow" : ""
-                      }`}
-                    >
-                      {p.title} {p.years ? `(${p.years})` : ""}
-                    </Button>
+  key={p.id}
+  size="sm"
+  onClick={() => focusById(p.id, true)}
+  className={`rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+    activeId === p.id
+      ? "bg-red-600 text-white border border-red-700 hover:bg-red-700"
+      : "bg-red-100 text-red-600 border border-red-200 hover:bg-red-200"
+  }`}
+>
+  {p.title} {p.years ? `(${p.years})` : ""}
+</Button>
+
                   ))}
                 </div>
               </ScrollArea>
@@ -390,18 +376,13 @@ export default function MapView() {
           </div>
         </div>
 
-        {/* Popup giữa màn hình */}
-        <Dialog
-          open={!!activePlace}
-          onOpenChange={(open) => (open ? null : closeModal())}
-        >
+        {/* Popup */}
+        <Dialog open={!!activePlace} onOpenChange={(open) => (open ? null : closeModal())}>
           <DialogContent className="max-w-3xl p-0">
             {activePlace && (
               <>
                 <DialogHeader className="px-6 pt-6">
-                  <DialogTitle className="text-2xl">
-                    {activePlace.title}
-                  </DialogTitle>
+                  <DialogTitle className="text-2xl">{activePlace.title}</DialogTitle>
                   <DialogDescription>
                     <span className="text-sm text-foreground/70">
                       {activePlace.years ? `${activePlace.years} · ` : ""}
@@ -418,14 +399,10 @@ export default function MapView() {
                         className="space-y-2 border-b pb-4 last:border-none"
                       >
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-red-700 text-white">
-                            {e.year}
-                          </Badge>
+                          <Badge className="bg-red-700 text-white">{e.year}</Badge>
                           <p className="font-medium">{e.title}</p>
                         </div>
-                        <p className="text-sm text-foreground/80">
-                          {e.summary}
-                        </p>
+                        <p className="text-sm text-foreground/80">{e.summary}</p>
                         {e.details?.length ? (
                           <ul className="list-disc pl-5 text-sm space-y-1">
                             {e.details.map((d, i) => (
