@@ -1,7 +1,8 @@
 export type Media =
-| { type: "image"; src: string; alt?: string }
-| { type: "video"; src: string; poster?: string }
-| { type: "audio"; src: string };
+  | { type: "image"; src: string; alt?: string }
+  | { type: "video"; src: string; poster?: string }
+  | { type: "audio"; src: string };
+
 
 
 export interface Quote {
