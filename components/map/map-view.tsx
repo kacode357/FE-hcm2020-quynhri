@@ -85,6 +85,14 @@ const customStyles = `
   .animate-pulse-glow { animation: pulse-glow 2s cubic-bezier(0.4,0,0.6,1) infinite; }
 `;
 
+/** ---- NHẬN DIỆN LINK DẠNG /map#<id> hoặc #<id> ---- */
+const getIdFromMapHref = (href: string): string | null => {
+  if (!href) return null;
+  if (href.startsWith("#")) return decodeURIComponent(href.slice(1));
+  const m = href.match(/\/map#([^?#]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
+};
+
 export default function MapView() {
   const sp = useSearchParams();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -139,7 +147,7 @@ export default function MapView() {
     const focus = sp.get("focus");
     const hash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
     const target = decodeURIComponent(focus || hash || "");
-    if (target) focusById(target, false);
+    if (target) focusById(target, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
 
@@ -200,6 +208,7 @@ export default function MapView() {
     return viaEvent ? viaEvent.id : null;
   }, []);
 
+  /** MỞ popup + flyTo */
   const focusById = useCallback(
     (id: string, pushHash = true) => {
       const pid = resolvePlaceId(id);
@@ -207,6 +216,23 @@ export default function MapView() {
       setActiveId(pid);
       flyToPlace(pid);
       if (pushHash && typeof window !== "undefined") {
+        window.history.replaceState({}, "", `#${pid}`);
+      }
+    },
+    [flyToPlace, resolvePlaceId]
+  );
+
+  /** KHÔNG mở popup, chỉ flyTo + update hash (phục vụ "Xem trên bản đồ") */
+  const goToIdNoPopup = useCallback(
+    (id: string) => {
+      const pid = resolvePlaceId(id);
+      if (!pid) return;
+      // đóng popup trước
+      setActiveId(null);
+      // bay tới vị trí
+      flyToPlace(pid);
+      // set hash
+      if (typeof window !== "undefined") {
         window.history.replaceState({}, "", `#${pid}`);
       }
     },
@@ -398,17 +424,36 @@ export default function MapView() {
                         {/* LINKS */}
                         {e.links?.length ? (
                           <div className="flex flex-wrap gap-2 pt-1">
-                            {e.links.map((l: any, i: number) => (
-                              <a
-                                key={i}
-                                href={l.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-sm text-red-600 hover:underline break-words"
-                              >
-                                {l.label} <span aria-hidden>↗</span>
-                              </a>
-                            ))}
+                            {e.links.map((l: any, i: number) => {
+                              const mapId = getIdFromMapHref(l.href);
+                              if (mapId) {
+                                // NỘI BỘ: đóng popup + flyTo, KHÔNG mở tab mới
+                                return (
+                                  <button
+                                    key={i}
+                                    onClick={() => {
+                                      closeModal();
+                                      goToIdNoPopup(mapId);
+                                    }}
+                                    className="text-sm text-red-600 hover:underline break-words"
+                                  >
+                                    {l.label} <span aria-hidden>↗</span>
+                                  </button>
+                                );
+                              }
+                              // BÊN NGOÀI: mở tab mới như cũ
+                              return (
+                                <a
+                                  key={i}
+                                  href={l.href}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm text-red-600 hover:underline break-words"
+                                >
+                                  {l.label} <span aria-hidden>↗</span>
+                                </a>
+                              );
+                            })}
                           </div>
                         ) : null}
 

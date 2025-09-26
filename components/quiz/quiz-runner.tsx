@@ -326,7 +326,7 @@ export default function QuizRunner() {
     // not-prose: thoát ảnh hưởng của Typography; grid+place-items-center: căn giữa theo viewport
     <section className="not-prose min-h-[70vh] py-10 px-4 grid place-items-center">
       {/* max-w-6xl để content tổng không bị dạt trái nếu trang có container hẹp */}
-      <div className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl mx-auto flex justify-center">
         {/* Card tự căn giữa theo chiều ngang nhờ mx-auto */}
         <Card className="w-full max-w-4xl mx-auto">
           <CardHeader>
