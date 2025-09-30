@@ -18,10 +18,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" suppressHydrationWarning>
+      {/* NOTE: bọc grid 2 hàng: header (auto) + content (1fr) */}
       <body className={`${playfair.variable} antialiased bg-background text-foreground`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <MainHeader />
-          {children}
+          <div className="min-h-screen grid grid-rows-[auto_1fr] overflow-x-hidden">
+            <MainHeader />
+            {/* vùng content chiếm toàn bộ phần còn lại dưới header */}
+            <div className="row-start-2 row-end-3">
+              {children}
+            </div>
+          </div>
         </ThemeProvider>
       </body>
     </html>
